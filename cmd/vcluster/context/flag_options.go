@@ -74,6 +74,8 @@ type VirtualClusterOptions struct {
 	VirtualContainerLogsPath string
 	VirtualKubeletPodPath    string
 
+	VirtualJournalLogPath string
+
 	HostMetricsBindAddress    string `json:"hostMetricsBindAddress,omitempty"`
 	VirtualMetricsBindAddress string `json:"virtualMetricsBindAddress,omitempty"`
 

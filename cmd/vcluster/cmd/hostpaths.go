@@ -95,10 +95,20 @@ func MapHostPaths(options *context2.VirtualClusterOptions) error {
 
 	options.VirtualContainerLogsPath = filepath.Join(options.VirtualLogsPath, "containers")
 
+	options.VirtualJournalLogPath = filepath.Join(options.VirtualLogsPath, "journal")
+
 	err := os.Mkdir(options.VirtualContainerLogsPath, os.ModeDir)
 	if err != nil {
 		if !os.IsExist(err) {
 			klog.Errorf("error creating container dir in log path: %v", err)
+			return err
+		}
+	}
+
+	err = os.Mkdir(options.VirtualJournalLogPath, os.ModeDir)
+	if err != nil {
+		if !os.IsExist(err) {
+			klog.Errorf("error creating journal dir in log path: %v", err)
 			return err
 		}
 	}
