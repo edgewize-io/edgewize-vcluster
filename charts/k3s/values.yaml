@@ -195,6 +195,7 @@ rbac:
     # Necessary cluster roles are created based on the enabled syncers (.sync.*.enabled)
     # Support for this value will be removed in a future version of the vcluster
     create: false
+    createWithLeastPrivileges: true
   role:
     # Deprecated !
     # Support for this value will be removed in a future version of the vcluster
