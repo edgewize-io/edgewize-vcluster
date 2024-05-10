@@ -16,8 +16,6 @@ jobs:
   build:
     name: Build
     runs-on: self-hosted
-    # TODO: Change variable to your repo's name.
-    if: github.repository	== 'edgewize-io/vcluster'
 
     steps: 
       - name: Check out code into the Go module directory
