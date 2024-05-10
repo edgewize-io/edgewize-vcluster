@@ -123,12 +123,13 @@ func CreateFakeNode(ctx context.Context, nodeServiceProvider nodeservice.NodeSer
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name.Name,
 			Labels: map[string]string{
-				"vcluster.loft.sh/fake-node": "true",
-				"beta.kubernetes.io/arch":    "amd64",
-				"beta.kubernetes.io/os":      "linux",
-				"kubernetes.io/arch":         "amd64",
-				"kubernetes.io/hostname":     translate.SafeConcatName("fake", name.Name),
-				"kubernetes.io/os":           "linux",
+				"vcluster.loft.sh/fake-node":       "true",
+				"beta.kubernetes.io/arch":          "amd64",
+				"beta.kubernetes.io/os":            "linux",
+				"kubernetes.io/arch":               "amd64",
+				"kubernetes.io/hostname":           translate.SafeConcatName("fake", name.Name),
+				"kubernetes.io/os":                 "linux",
+				"node-role.kubernetes.io/fakenode": "",
 			},
 			Annotations: map[string]string{
 				"node.alpha.kubernetes.io/ttl":                           "0",
