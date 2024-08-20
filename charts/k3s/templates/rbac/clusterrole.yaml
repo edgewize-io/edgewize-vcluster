@@ -13,7 +13,7 @@ metadata:
 {{ toYaml .Values.globalAnnotations | indent 4 }}
   {{- end }}
 rules:
-  {{- if or .Values.sync.nodes.enabled .Values.rbac.clusterRole.create }}
+  {{- if or .Values.sync.nodes.enabled .Values.rbac.clusterRole.create .Values.rbac.clusterRole.createWithLeastPrivileges }}
   - apiGroups: [""]
     resources: ["nodes", "nodes/status"]
     verbs: ["get", "watch", "list"]

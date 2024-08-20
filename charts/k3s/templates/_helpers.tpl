@@ -37,7 +37,7 @@ Whether the ingressclasses syncer should be enabled
 Whether to create a cluster role or not
 */}}
 {{- define "vcluster.createClusterRole" -}}
-{{- if or (not (empty (include "vcluster.serviceMapping.fromHost" . ))) (not (empty (include "vcluster.plugin.clusterRoleExtraRules" . ))) .Values.rbac.clusterRole.create .Values.sync.hoststorageclasses.enabled (index ((index .Values.sync "legacy-storageclasses") | default (dict "enabled" false)) "enabled") (include "vcluster.syncIngressclassesEnabled" . ) .Values.sync.ingresses.enabled .Values.sync.nodes.enabled .Values.sync.persistentvolumes.enabled .Values.sync.storageclasses.enabled .Values.sync.priorityclasses.enabled .Values.sync.volumesnapshots.enabled -}}
+{{- if or (not (empty (include "vcluster.serviceMapping.fromHost" . ))) (not (empty (include "vcluster.plugin.clusterRoleExtraRules" . ))) .Values.rbac.clusterRole.create .Values.rbac.clusterRole.createWithLeastPrivileges .Values.sync.hoststorageclasses.enabled (index ((index .Values.sync "legacy-storageclasses") | default (dict "enabled" false)) "enabled") (include "vcluster.syncIngressclassesEnabled" . ) .Values.sync.ingresses.enabled .Values.sync.nodes.enabled .Values.sync.persistentvolumes.enabled .Values.sync.storageclasses.enabled .Values.sync.priorityclasses.enabled .Values.sync.volumesnapshots.enabled -}}
     {{- true -}}
 {{- end -}}
 {{- end -}}

@@ -95,10 +95,20 @@ func MapHostPaths(options *context2.VirtualClusterOptions) error {
 
 	options.VirtualContainerLogsPath = filepath.Join(options.VirtualLogsPath, "containers")
 
+	options.VirtualJournalLogPath = filepath.Join(options.VirtualLogsPath, "journal")
+
 	err := os.Mkdir(options.VirtualContainerLogsPath, os.ModeDir)
 	if err != nil {
 		if !os.IsExist(err) {
 			klog.Errorf("error creating container dir in log path: %v", err)
+			return err
+		}
+	}
+
+	err = os.Mkdir(options.VirtualJournalLogPath, os.ModeDir)
+	if err != nil {
+		if !os.IsExist(err) {
+			klog.Errorf("error creating journal dir in log path: %v", err)
 			return err
 		}
 	}
@@ -471,6 +481,11 @@ func checkIfPathExists(path string) (bool, error) {
 }
 
 func startManagers(ctx context.Context, pManager, vManager manager.Manager) {
+	err := pManager.GetFieldIndexer().IndexField(ctx, &corev1.Pod{}, NodeIndexName, podNodeIndexer)
+	if err != nil {
+		panic(err)
+	}
+
 	go func() {
 		err := pManager.Start(ctx)
 		if err != nil {
@@ -478,22 +493,17 @@ func startManagers(ctx context.Context, pManager, vManager manager.Manager) {
 		}
 	}()
 
+	err = vManager.GetFieldIndexer().IndexField(ctx, &corev1.Pod{}, NodeIndexName, podNodeIndexer)
+	if err != nil {
+		panic(err)
+	}
+
 	go func() {
 		err := vManager.Start(ctx)
 		if err != nil {
 			panic(err)
 		}
 	}()
-
-	err := pManager.GetFieldIndexer().IndexField(ctx, &corev1.Pod{}, NodeIndexName, podNodeIndexer)
-	if err != nil {
-		panic(err)
-	}
-
-	err = vManager.GetFieldIndexer().IndexField(ctx, &corev1.Pod{}, NodeIndexName, podNodeIndexer)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func createPodLogSymlinkToPhysical(ctx context.Context, vPodDirName, pPodDirName string) (*string, error) {
