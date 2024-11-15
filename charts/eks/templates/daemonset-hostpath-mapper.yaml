@@ -42,6 +42,8 @@ spec:
       {{- else }}
       serviceAccountName: vc-{{ .Release.Name }}
       {{- end }}
+      tolerations:
+        - operator: Exists
       containers:
       - name: hostpath-mapper
         {{- if .Values.hostpathMapper.image }}
