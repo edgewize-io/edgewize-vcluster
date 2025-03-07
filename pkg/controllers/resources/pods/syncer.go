@@ -3,6 +3,7 @@ package pods
 import (
 	"context"
 	"fmt"
+	"k8s.io/klog/v2"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/loft-sh/vcluster/pkg/edgewize"
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/klog/v2"
 
 	"github.com/loft-sh/vcluster/pkg/controllers/syncer"
 	synccontext "github.com/loft-sh/vcluster/pkg/controllers/syncer/context"
@@ -212,23 +212,19 @@ func (s *podSyncer) SyncDown(ctx *synccontext.SyncContext, vObj client.Object) (
 	vPod := vObj.(*corev1.Pod)
 
 	klog.Infof("Sync pod %s/%s down, node: %s", vPod.Namespace, vPod.Name, vPod.Spec.NodeName)
-
-	if vPod.Spec.NodeName == "" {
-		klog.Infof("Skip sync pod %s/%s because it has no node name", vPod.Namespace, vPod.Name)
-		return ctrl.Result{}, nil
+	if vPod.Spec.NodeName != "" {
+		yes, err := edgewize.IsFakeNode(ctx.VirtualClient, vPod.Spec.NodeName)
+		if err != nil {
+			klog.Errorf("Failed to check if pod %s/%s is running on fake node: %v", vPod.Namespace, vPod.Name, err)
+			return ctrl.Result{}, err
+		}
+		if !yes {
+			klog.Infof("Skip sync pod %s/%s because it is not running on fake node", vPod.Namespace, vPod.Name)
+			return ctrl.Result{}, nil
+		}
 	}
 
-	yes, err := edgewize.IsFakeNode(ctx.VirtualClient, vPod.Spec.NodeName)
-	if err != nil {
-		klog.Errorf("Failed to check if pod %s/%s is running on fake node: %v", vPod.Namespace, vPod.Name, err)
-		return ctrl.Result{}, err
-	}
-	if !yes {
-		klog.Infof("Skip sync pod %s/%s because it is not running on fake node", vPod.Namespace, vPod.Name)
-		return ctrl.Result{}, nil
-	}
-
-	yes, err = edgewize.IsSystemWorkspace(ctx.VirtualClient, vPod.Namespace)
+	yes, err := edgewize.IsSystemWorkspace(ctx.VirtualClient, vPod.Namespace)
 	if err != nil {
 		klog.Errorf("Failed to check if pod %s/%s is running on system namespace: %v", vPod.Namespace, vPod.Name, err)
 		return ctrl.Result{}, err
@@ -442,19 +438,16 @@ func (s *podSyncer) Sync(ctx *synccontext.SyncContext, pObj client.Object, vObj 
 	vPod := vObj.(*corev1.Pod)
 	pPod := pObj.(*corev1.Pod)
 
-	if vPod.Spec.NodeName == "" {
-		klog.Infof("Skip sync pod %s/%s because it has no node name", vPod.Namespace, vPod.Name)
-		return ctrl.Result{}, nil
-	}
-
-	yes, err := edgewize.IsFakeNode(ctx.VirtualClient, vPod.Spec.NodeName)
-	if err != nil {
-		klog.Errorf("Failed to check if pod %s/%s is running on fake node: %v", vPod.Namespace, vPod.Name, err)
-		return ctrl.Result{}, err
-	}
-	if !yes {
-		klog.Infof("Skip sync pod %s/%s because it is not running on fake node", vPod.Namespace, vPod.Name)
-		return ctrl.Result{}, nil
+	if vPod.Spec.NodeName != "" {
+		yes, err := edgewize.IsFakeNode(ctx.VirtualClient, vPod.Spec.NodeName)
+		if err != nil {
+			klog.Errorf("Failed to check if pod %s/%s is running on fake node: %v", vPod.Namespace, vPod.Name, err)
+			return ctrl.Result{}, err
+		}
+		if !yes {
+			klog.Infof("Skip sync pod %s/%s because it is not running on fake node", vPod.Namespace, vPod.Name)
+			return ctrl.Result{}, nil
+		}
 	}
 
 	// should pod get deleted?
