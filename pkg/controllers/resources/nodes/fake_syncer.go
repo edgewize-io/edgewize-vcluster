@@ -136,6 +136,15 @@ func CreateFakeNode(ctx context.Context, nodeServiceProvider nodeservice.NodeSer
 				"volumes.kubernetes.io/controller-managed-attach-detach": "false",
 			},
 		},
+		Spec: corev1.NodeSpec{
+			Taints: []corev1.Taint{
+				{
+					Key:    "vcluster.loft.sh/fake-node",
+					Value:  "true",
+					Effect: corev1.TaintEffectNoSchedule,
+				},
+			},
+		},
 	}
 
 	err := virtualClient.Create(ctx, node)
@@ -289,7 +298,13 @@ func UpdateFakeNode(ctx context.Context, nodeServiceProvider nodeservice.NodeSer
 
 	// remove not ready taints
 	orig = node.DeepCopy()
-	node.Spec.Taints = []corev1.Taint{}
+	node.Spec.Taints = []corev1.Taint{
+		{
+			Key:    "vcluster.loft.sh/fake-node",
+			Value:  "true",
+			Effect: corev1.TaintEffectNoSchedule,
+		},
+	}
 	err = virtualClient.Patch(ctx, node, client.MergeFrom(orig))
 	if err != nil {
 		return err
