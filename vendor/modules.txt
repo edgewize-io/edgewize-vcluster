@@ -1,5 +1,5 @@
-# cloud.google.com/go v0.97.0
-## explicit; go 1.11
+# cloud.google.com/go/compute v1.6.1
+## explicit; go 1.15
 cloud.google.com/go/compute/metadata
 # github.com/AlecAivazis/survey/v2 v2.3.6
 ## explicit; go 1.13
@@ -53,6 +53,9 @@ github.com/blang/semver
 # github.com/blang/semver/v4 v4.0.0
 ## explicit; go 1.14
 github.com/blang/semver/v4
+# github.com/buger/jsonparser v1.1.1
+## explicit; go 1.13
+github.com/buger/jsonparser
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
@@ -207,6 +210,18 @@ github.com/grpc-ecosystem/grpc-gateway/utilities
 ## explicit; go 1.12
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
+# github.com/hashicorp/hcl v1.0.0
+## explicit
+github.com/hashicorp/hcl
+github.com/hashicorp/hcl/hcl/ast
+github.com/hashicorp/hcl/hcl/parser
+github.com/hashicorp/hcl/hcl/printer
+github.com/hashicorp/hcl/hcl/scanner
+github.com/hashicorp/hcl/hcl/strconv
+github.com/hashicorp/hcl/hcl/token
+github.com/hashicorp/hcl/json/parser
+github.com/hashicorp/hcl/json/scanner
+github.com/hashicorp/hcl/json/token
 # github.com/imdario/mergo v0.3.12
 ## explicit; go 1.13
 github.com/imdario/mergo
@@ -248,16 +263,19 @@ github.com/loft-sh/utils/pkg/extract
 github.com/loft-sh/utils/pkg/helm
 github.com/loft-sh/utils/pkg/helm/values
 github.com/loft-sh/utils/pkg/log
+# github.com/magiconair/properties v1.8.6
+## explicit; go 1.13
+github.com/magiconair/properties
 # github.com/mailru/easyjson v0.7.6
 ## explicit; go 1.12
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/mattn/go-colorable v0.1.2
-## explicit
+# github.com/mattn/go-colorable v0.1.12
+## explicit; go 1.13
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.8
-## explicit
+# github.com/mattn/go-isatty v0.0.14
+## explicit; go 1.12
 github.com/mattn/go-isatty
 # github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
 ## explicit; go 1.9
@@ -271,7 +289,7 @@ github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-wordwrap v1.0.0
 ## explicit
 github.com/mitchellh/go-wordwrap
-# github.com/mitchellh/mapstructure v1.4.1
+# github.com/mitchellh/mapstructure v1.5.0
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
 # github.com/moby/spdystream v0.2.0
@@ -341,6 +359,15 @@ github.com/onsi/gomega/types
 # github.com/otiai10/copy v1.7.0
 ## explicit; go 1.14
 github.com/otiai10/copy
+# github.com/pelletier/go-toml v1.9.5
+## explicit; go 1.12
+github.com/pelletier/go-toml
+# github.com/pelletier/go-toml/v2 v2.0.5
+## explicit; go 1.16
+github.com/pelletier/go-toml/v2
+github.com/pelletier/go-toml/v2/internal/ast
+github.com/pelletier/go-toml/v2/internal/danger
+github.com/pelletier/go-toml/v2/internal/tracker
 # github.com/peterbourgon/diskv v2.0.1+incompatible
 ## explicit
 github.com/peterbourgon/diskv
@@ -377,12 +404,36 @@ github.com/russross/blackfriday
 # github.com/sirupsen/logrus v1.9.0
 ## explicit; go 1.13
 github.com/sirupsen/logrus
+# github.com/spf13/afero v1.8.2
+## explicit; go 1.13
+github.com/spf13/afero
+github.com/spf13/afero/mem
+# github.com/spf13/cast v1.5.0
+## explicit; go 1.18
+github.com/spf13/cast
 # github.com/spf13/cobra v1.4.0
 ## explicit; go 1.15
 github.com/spf13/cobra
+# github.com/spf13/jwalterweatherman v1.1.0
+## explicit
+github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
 ## explicit; go 1.12
 github.com/spf13/pflag
+# github.com/spf13/viper v1.13.0
+## explicit; go 1.17
+github.com/spf13/viper
+github.com/spf13/viper/internal/encoding
+github.com/spf13/viper/internal/encoding/dotenv
+github.com/spf13/viper/internal/encoding/hcl
+github.com/spf13/viper/internal/encoding/ini
+github.com/spf13/viper/internal/encoding/javaproperties
+github.com/spf13/viper/internal/encoding/json
+github.com/spf13/viper/internal/encoding/toml
+github.com/spf13/viper/internal/encoding/yaml
+# github.com/subosito/gotenv v1.4.1
+## explicit; go 1.18
+github.com/subosito/gotenv
 # github.com/tcnksm/go-gitconfig v0.1.2
 ## explicit
 github.com/tcnksm/go-gitconfig
@@ -518,7 +569,7 @@ go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 go.uber.org/zap/zapgrpc
-# golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
+# golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 ## explicit; go 1.17
 golang.org/x/crypto/cast5
 golang.org/x/crypto/cryptobyte
@@ -556,7 +607,7 @@ golang.org/x/net/internal/timeseries
 golang.org/x/net/proxy
 golang.org/x/net/trace
 golang.org/x/net/websocket
-# golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+# golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 ## explicit; go 1.11
 golang.org/x/oauth2
 golang.org/x/oauth2/authhandler
@@ -620,7 +671,7 @@ google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
-# google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21
+# google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
 ## explicit; go 1.15
 google.golang.org/genproto/googleapis/api/annotations
 google.golang.org/genproto/googleapis/api/httpbody
@@ -717,6 +768,9 @@ google.golang.org/protobuf/types/known/wrapperspb
 # gopkg.in/inf.v0 v0.9.1
 ## explicit
 gopkg.in/inf.v0
+# gopkg.in/ini.v1 v1.67.0
+## explicit
+gopkg.in/ini.v1
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 ## explicit
 gopkg.in/natefinch/lumberjack.v2
