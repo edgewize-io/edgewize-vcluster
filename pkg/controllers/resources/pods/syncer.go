@@ -223,16 +223,6 @@ func (s *podSyncer) SyncDown(ctx *synccontext.SyncContext, vObj client.Object) (
 		}
 	}
 
-	//yes, err := edgewize.IsSystemWorkspace(ctx.VirtualClient, vPod.Namespace)
-	//if err != nil {
-	//	klog.Errorf("Failed to check if pod %s/%s is running on system namespace: %v", vPod.Namespace, vPod.Name, err)
-	//	return ctrl.Result{}, err
-	//}
-	//if !yes {
-	//	klog.Infof("Skip sync pod %s/%s because it is not running on system namespace", vPod.Namespace, vPod.Name)
-	//	return ctrl.Result{}, nil
-	//}
-
 	if !edgewize.IsPodNeedSync(vPod) {
 		klog.Infof("Skip sync pod %s/%s because it is not needed", vPod.Namespace, vPod.Name)
 		return ctrl.Result{}, nil
