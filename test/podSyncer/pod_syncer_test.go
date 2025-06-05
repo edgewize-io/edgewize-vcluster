@@ -20,7 +20,7 @@ func init() {
 func initConfig() error {
 	var err error
 	v = viper.New()
-	v.SetConfigFile("test1_config.yaml")
+	v.SetConfigFile("D:\\gopath\\src\\testdemo\\config\\test1_config.yaml")
 	v.SetConfigType("yaml")
 	err = v.ReadInConfig()
 	if err != nil {
@@ -54,12 +54,12 @@ func TestRunPodSyncerTests(t *testing.T) {
 		},
 	}
 	bs, _ := json.Marshal(data)
-	for _, r := range Cfg.AllowPodSyncDownRule {
-		ok := utils.MatchObjectsByFieldSelector(bs, r.Selector)
-		fmt.Println(fmt.Sprintf("match %s \n get value %v", r.Selector, ok))
-	}
-	for _, r := range Cfg.SkipPodSyncDownRule {
-		ok := utils.MatchObjectsByFieldSelector(bs, r.Selector)
-		fmt.Println(fmt.Sprintf("match %s \n get value %v", r.Selector, ok))
+	for _, r := range Cfg.Rules {
+		match := utils.MatchObjectsByFieldSelector(bs, r.Selector)
+		if match {
+			fmt.Println(fmt.Sprintf("Matched object:%s with action:%s do %v", r.Name, r.Action, r.DoAction()))
+		} else {
+			fmt.Println(fmt.Sprintf("Not matched object:%s", r.Name))
+		}
 	}
 }

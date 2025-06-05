@@ -6,13 +6,30 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	ActionAllow = "allow"
+	ActionDeny  = "deny"
+)
+
 type Config struct {
-	AllowPodSyncDownRule []Rule `yaml:"allowPodSyncDownRule"`
-	SkipPodSyncDownRule  []Rule `yaml:"skipPodSyncDownRule"`
+	Rules []Rule `yaml:"rules"`
 }
+
 type Rule struct {
 	Selector string `yaml:"selector"`
 	Name     string `yaml:"name"`
+	Action   string `yaml:"action"`
+}
+
+func (r Rule) DoAction() bool {
+	switch r.Action {
+	case ActionAllow:
+		return true
+	case ActionDeny:
+		return false
+	default:
+		return false
+	}
 }
 
 var Cfg Config

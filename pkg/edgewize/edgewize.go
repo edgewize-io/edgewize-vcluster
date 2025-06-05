@@ -35,28 +35,15 @@ func IsPodNeedSync(pod *corev1.Pod) bool {
 	metadata := pod.ObjectMeta.DeepCopy()
 	data, err := json.Marshal(metadata)
 	if err != nil {
-		return true
-	}
-	allowed := false
-	for _, sls := range config.Cfg.AllowPodSyncDownRule {
-		matched := utils.MatchObjectsByFieldSelector(data, sls.Selector)
-		if matched {
-			klog.Infof("pod %s/%s need sync because rule: %s", pod.Namespace, pod.Name, sls.Name)
-			allowed = true
-			break
-		}
-	}
-	if !allowed {
 		return false
 	}
-	for _, sls := range config.Cfg.SkipPodSyncDownRule {
+	for _, sls := range config.Cfg.Rules {
 		matched := utils.MatchObjectsByFieldSelector(data, sls.Selector)
 		if matched {
-			klog.Infof("pod %s/%s not need sync because rule: %s", pod.Namespace, pod.Name, sls.Name)
-			return false
+			return sls.DoAction()
 		}
 	}
-	return true
+	return false
 }
 
 func IsFakeNode(cli client.Client, name string) (bool, error) {
