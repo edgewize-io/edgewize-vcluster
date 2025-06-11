@@ -55,13 +55,9 @@ func WithRedirect(h http.Handler, localConfig *rest.Config, localScheme *runtime
 						return
 					}
 				}
-				yes, err := edgewize.IsSystemWorkspace(uncachedVirtualClient, info.Namespace)
-				if err != nil {
-					requestpkg.FailWithStatus(w, req, http.StatusInternalServerError, fmt.Errorf("failed to check if namespace is system-workspace: %v", err))
-					return
-				}
-				if !yes {
-					klog.V(4).Infof("skipping redirect for namespace %s", info.Namespace)
+
+				if !edgewize.IsPodNeedSync(pod) {
+					klog.Infof("Skip sync pod %s/%s because it is not needed", pod.Namespace, pod.Name)
 					h.ServeHTTP(w, req)
 					return
 				}

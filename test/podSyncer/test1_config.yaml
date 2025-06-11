@@ -1,0 +1,49 @@
+rules:
+  - selector: labels[app.kubernetes.io/instance]=vector-agent
+    name: "deny vector-agent"
+    action: deny
+  - selector: labels[app.kubernetes.io/name]=router-manager-edge
+    name: "deny router-manager-edge"
+    action: deny
+  - selector: labels[app]=eventbus
+    name: "deny eventbus"
+    action: deny
+  - selector: labels[app.kubernetes.io/name]=vector
+    name: "deny vector"
+    action: deny
+  - selector: labels[app]=edge-prom-agent
+    name: "deny edge-prom-agent"
+    action: deny
+  - selector: namespace=default
+    name: "allow system namespace default"
+    action: allow
+  - selector: namespace=edgewize-system
+    name: "allow system namespace edgewize-system"
+    action: allow
+  - selector: namespace=extension-whizard-alerting
+    name: "allow system namespace extension-whizard-alerting"
+    action: allow
+  - selector: namespace=kube-node-lease
+    name: "allow system namespace kube-node-lease"
+    action: allow
+  - selector: namespace=kube-public
+    name: "allow system namespace kube-public"
+    action: allow
+  - selector: namespace=kube-system
+    name: "allow system namespace kube-system"
+    action: allow
+  - selector: namespace=kubeedge
+    name: "allow system namespace kubeedge"
+    action: allow
+  - selector: namespace=kubesphere-controls-system
+    name: "allow system namespace kubesphere-controls-system"
+    action: allow
+  - selector: namespace=kubesphere-logging-system
+    name: "allow system namespace kubesphere-logging-system"
+    action: allow
+  - selector: namespace=kubesphere-monitoring-system
+    name: "allow system namespace kubesphere-monitoring-system"
+    action: allow
+  - selector: namespace=kubesphere-system
+    name: "allow system namespace kubesphere-system"
+    action: allow

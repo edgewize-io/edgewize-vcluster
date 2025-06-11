@@ -2,22 +2,25 @@ package edgewize
 
 import (
 	"context"
-	synccontext "github.com/loft-sh/vcluster/pkg/controllers/syncer/context"
-	"github.com/loft-sh/vcluster/pkg/util/translate"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/klog/v2"
+	"encoding/json"
 	"sync"
 
+	synccontext "github.com/loft-sh/vcluster/pkg/controllers/syncer/context"
+	"github.com/loft-sh/vcluster/pkg/edgewize/config"
+	"github.com/loft-sh/vcluster/pkg/edgewize/utils"
+	"github.com/loft-sh/vcluster/pkg/util/translate"
+
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var (
 	fakenodes = &sync.Map{}
-	once = sync.Once{}
+	once      = sync.Once{}
 )
-
 
 func IsSystemWorkspace(cli client.Client, name string) (bool, error) {
 	namespace := &corev1.Namespace{}
@@ -26,6 +29,21 @@ func IsSystemWorkspace(cli client.Client, name string) (bool, error) {
 		return false, err
 	}
 	return namespace.Labels["kubesphere.io/workspace"] == "system-workspace", nil
+}
+
+func IsPodNeedSync(pod *corev1.Pod) bool {
+	metadata := pod.ObjectMeta.DeepCopy()
+	data, err := json.Marshal(metadata)
+	if err != nil {
+		return false
+	}
+	for _, sls := range config.Cfg.Rules {
+		matched := utils.MatchObjectsByFieldSelector(data, sls.Selector)
+		if matched {
+			return sls.DoAction()
+		}
+	}
+	return false
 }
 
 func IsFakeNode(cli client.Client, name string) (bool, error) {
