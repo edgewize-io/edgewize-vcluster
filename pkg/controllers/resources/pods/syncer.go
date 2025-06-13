@@ -77,6 +77,19 @@ type ContainerPhysicalMountPathRegister struct {
 	LogMountPath     map[string]bool
 }
 
+// nfsPath 规范化工具函数
+func normalizeNfsPath(nfsPath string) string {
+	if nfsPath != "" {
+		if nfsPath[0] != '/' {
+			nfsPath = "/" + nfsPath
+		}
+		if len(nfsPath) > 1 && nfsPath[len(nfsPath)-1] == '/' {
+			nfsPath = nfsPath[:len(nfsPath)-1]
+		}
+	}
+	return nfsPath
+}
+
 func New(ctx *synccontext.RegisterContext) (syncer.Object, error) {
 	virtualClusterClient, err := kubernetes.NewForConfig(ctx.VirtualManager.GetConfig())
 	if err != nil {
@@ -131,6 +144,9 @@ func New(ctx *synccontext.RegisterContext) (syncer.Object, error) {
 
 	edgewize.InitFakeNode(ctx)
 
+	// PVC 替换相关参数初始化
+	nfsPath := normalizeNfsPath(ctx.Options.NfsPath)
+
 	return &podSyncer{
 		NamespacedTranslator: namespacedTranslator,
 
@@ -148,10 +164,10 @@ func New(ctx *synccontext.RegisterContext) (syncer.Object, error) {
 		virtualPodLogsPath:    filepath.Join(virtualLogsPath, "pods"),
 		virtualKubeletPodPath: filepath.Join(virtualKubeletPath, "pods"),
 
-		// PVC 替换相关参数初始化
+		// PVC 替换相关参数
 		pvcReplaceType: ctx.Options.PVCReplaceType,
 		nfsServer:      ctx.Options.NfsServer,
-		nfsPath:        ctx.Options.NfsPath,
+		nfsPath:        nfsPath,
 	}, nil
 }
 
