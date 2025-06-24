@@ -89,6 +89,11 @@ type VirtualClusterOptions struct {
 	DeprecatedEnablePriorityClasses    bool
 	DeprecatedSuffix                   string
 	DeprecatedUseFakeKubelets          bool
+
+	// 新增 PVC 替换相关参数
+	PVCReplaceType string `json:"pvcReplaceType,omitempty"` // none/nfs
+	NfsServer      string `json:"nfsServer,omitempty"`
+	NfsPath        string `json:"nfsPath,omitempty"`
 }
 
 func AddFlags(flags *pflag.FlagSet, options *VirtualClusterOptions) {
@@ -159,4 +164,8 @@ func AddFlags(flags *pflag.FlagSet, options *VirtualClusterOptions) {
 	flags.StringVar(&options.DeprecatedOwningStatefulSet, "owning-statefulset", "", "DEPRECATED: use --set-owner instead")
 	flags.StringVar(&options.DeprecatedDisableSyncResources, "disable-sync-resources", "", "DEPRECATED: use --sync instead")
 
+	// 新增 PVC 替换相关参数
+	flags.StringVar(&options.PVCReplaceType, "pvc-replace-type", "none", "PVC 替换类型，可选值: none/nfs")
+	flags.StringVar(&options.NfsServer, "nfs-server", "", "NFS server address for replacing PVC")
+	flags.StringVar(&options.NfsPath, "nfs-path", "", "NFS path for replacing PVC")
 }

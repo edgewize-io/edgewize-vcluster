@@ -131,6 +131,21 @@ func parseControllers(options *VirtualClusterOptions) (sets.String, error) {
 		return nil, fmt.Errorf("you cannot sync storageclasses and hoststorageclasses at the same time. Choose only one of them")
 	}
 
+	// PVC replace type validation
+	switch options.PVCReplaceType {
+	case "none", "":
+		// No validation needed
+	case "nfs":
+		if options.NfsServer == "" {
+			return nil, fmt.Errorf("nfs-server must be set when pvc-replace-type is nfs")
+		}
+		if options.NfsPath == "" {
+			return nil, fmt.Errorf("nfs-path must be set when pvc-replace-type is nfs")
+		}
+	default:
+		return nil, fmt.Errorf("unsupported pvc-replace-type: %s. Supported types: none, nfs", options.PVCReplaceType)
+	}
+
 	return enabledControllers, nil
 }
 
