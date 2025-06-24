@@ -3,7 +3,7 @@ name: BuildContainerImage
 on:
   push:
     branches:
-      - 'v0.13-kse'
+      - 'kse/pvc-nfs-mount'
   # Keep it only for test purpose, comment it once everything is ok
   workflow_dispatch:
 
