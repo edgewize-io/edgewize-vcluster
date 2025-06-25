@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"github.com/loft-sh/vcluster/pkg/util/translate"
 )
 
 var (
@@ -441,11 +442,12 @@ func (s *podSyncer) rewritePVC(vPod *corev1.Pod, pod *corev1.Pod) *corev1.Pod {
 		for i, vol := range pod.Spec.Volumes {
 			if vol.PersistentVolumeClaim != nil {
 				// cluster 用 pod.Namespace 代表虚拟集群目标 namespace
+				virtualName := translate.VirtualName(vol.PersistentVolumeClaim.ClaimName)
 				nfsPath := fmt.Sprintf("%s/%s/%s/%s",
-					s.nfsPath,                           // 前缀
-					pod.Namespace,                       // cluster
-					vPod.Namespace,                      // namespace
-					vol.PersistentVolumeClaim.ClaimName, // PVC 名
+					s.nfsPath,      // 前缀
+					pod.Namespace,  // cluster
+					vPod.Namespace, // namespace
+					virtualName,    // PVC 名
 				)
 				pod.Spec.Volumes[i] = corev1.Volume{
 					Name: vol.Name,

@@ -202,3 +202,21 @@ func Exists(a []string, k string) bool {
 
 	return false
 }
+
+// VirtualName 从物理名称还原虚拟名称
+func VirtualName(physicalName string) string {
+	parts := strings.Split(physicalName, "-x-")
+	if len(parts) >= 2 {
+		return parts[0]
+	}
+	return physicalName
+}
+
+// VirtualNamespace 从物理名称还原虚拟命名空间
+func VirtualNamespace(physicalName string) string {
+	parts := strings.Split(physicalName, "-x-")
+	if len(parts) >= 3 {
+		return parts[1]
+	}
+	return ""
+}
