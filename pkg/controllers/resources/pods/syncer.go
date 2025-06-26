@@ -33,6 +33,7 @@ import (
 	"github.com/loft-sh/vcluster/pkg/edgewize"
 	"github.com/loft-sh/vcluster/pkg/util/loghelper"
 	"github.com/loft-sh/vcluster/pkg/util/toleration"
+	"github.com/loft-sh/vcluster/pkg/util/translate"
 )
 
 var (
@@ -75,6 +76,19 @@ type ContainerPhysicalMountPathRegister struct {
 	KubeletMountPath map[string]bool
 	PodLogMountPath  map[string]bool
 	LogMountPath     map[string]bool
+}
+
+// nfsPath 规范化工具函数
+func normalizeNfsPath(nfsPath string) string {
+	if nfsPath != "" {
+		if nfsPath[0] != '/' {
+			nfsPath = "/" + nfsPath
+		}
+		if len(nfsPath) > 1 && nfsPath[len(nfsPath)-1] == '/' {
+			nfsPath = nfsPath[:len(nfsPath)-1]
+		}
+	}
+	return nfsPath
 }
 
 func New(ctx *synccontext.RegisterContext) (syncer.Object, error) {
@@ -131,6 +145,9 @@ func New(ctx *synccontext.RegisterContext) (syncer.Object, error) {
 
 	edgewize.InitFakeNode(ctx)
 
+	// PVC 替换相关参数初始化
+	nfsPath := normalizeNfsPath(ctx.Options.NfsPath)
+
 	return &podSyncer{
 		NamespacedTranslator: namespacedTranslator,
 
@@ -147,6 +164,11 @@ func New(ctx *synccontext.RegisterContext) (syncer.Object, error) {
 		virtualLogsPath:       virtualLogsPath,
 		virtualPodLogsPath:    filepath.Join(virtualLogsPath, "pods"),
 		virtualKubeletPodPath: filepath.Join(virtualKubeletPath, "pods"),
+
+		// PVC 替换相关参数
+		pvcReplaceType: ctx.Options.PVCReplaceType,
+		nfsServer:      ctx.Options.NfsServer,
+		nfsPath:        nfsPath,
 	}, nil
 }
 
@@ -167,6 +189,11 @@ type podSyncer struct {
 	virtualLogsPath       string
 	virtualPodLogsPath    string
 	virtualKubeletPodPath string
+
+	// PVC 替换相关参数
+	pvcReplaceType string
+	nfsServer      string
+	nfsPath        string
 }
 
 var _ syncer.IndicesRegisterer = &podSyncer{}
@@ -291,6 +318,9 @@ func (s *podSyncer) SyncDown(ctx *synccontext.SyncContext, vObj client.Object) (
 	}
 
 	pPod = s.checkAndRewriteHostPath(ctx, pPod)
+
+	// PVC 替换策略入口
+	pPod = s.rewritePVC(vPod, pPod)
 
 	// if scheduler is enabled we only sync if the pod has a node name
 	if s.enableScheduler && pPod.Spec.NodeName == "" {
@@ -426,6 +456,35 @@ func (s *podSyncer) addPhysicalPathToVolumesAndCorrectContainers(ctx *synccontex
 	}
 
 	return pPod
+}
+
+func (s *podSyncer) rewritePVC(vPod *corev1.Pod, pod *corev1.Pod) *corev1.Pod {
+	switch s.pvcReplaceType {
+	case "nfs":
+		for i, vol := range pod.Spec.Volumes {
+			if vol.PersistentVolumeClaim != nil {
+				// cluster 用 pod.Namespace 代表虚拟集群目标 namespace
+				virtualName := translate.VirtualName(vol.PersistentVolumeClaim.ClaimName)
+				nfsPath := fmt.Sprintf("%s/%s/%s/%s",
+					s.nfsPath,      // 前缀
+					pod.Namespace,  // cluster
+					vPod.Namespace, // namespace
+					virtualName,    // PVC 名
+				)
+				pod.Spec.Volumes[i] = corev1.Volume{
+					Name: vol.Name,
+					VolumeSource: corev1.VolumeSource{
+						NFS: &corev1.NFSVolumeSource{
+							Server:   s.nfsServer,
+							Path:     nfsPath,
+							ReadOnly: false,
+						},
+					},
+				}
+			}
+		}
+	}
+	return pod
 }
 
 func (s *podSyncer) Sync(ctx *synccontext.SyncContext, pObj client.Object, vObj client.Object) (ctrl.Result, error) {

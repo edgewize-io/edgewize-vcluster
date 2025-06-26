@@ -448,3 +448,162 @@ func TestSync(t *testing.T) {
 		},
 	})
 }
+
+func TestRewritePVCToNFS(t *testing.T) {
+	s := &podSyncer{
+		pvcReplaceType: "nfs",
+		nfsServer:      "10.10.10.10",
+		nfsPath:        "/nfsdata",
+	}
+	vPod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mypod",
+			Namespace: "testns",
+		},
+	}
+	pPod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mypod",
+			Namespace: "vcluster1",
+		},
+		Spec: corev1.PodSpec{
+			Volumes: []corev1.Volume{
+				{
+					Name: "data",
+					VolumeSource: corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+							ClaimName: "myclaim",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// 正常情况
+	pPod1 := pPod.DeepCopy()
+	pPod1 = s.rewritePVC(vPod, pPod1)
+	assert.Equal(t, len(pPod1.Spec.Volumes), 1)
+	vol := pPod1.Spec.Volumes[0]
+	assert.Equal(t, vol.Name, "data")
+	assert.Assert(t, vol.VolumeSource.NFS != nil)
+	assert.Equal(t, vol.VolumeSource.NFS.Server, "10.10.10.10")
+	assert.Equal(t, vol.VolumeSource.NFS.Path, "/nfsdata/vcluster1/testns/myclaim")
+
+	// pvcReplaceType 为空时，不应替换
+	s2 := &podSyncer{
+		pvcReplaceType: "",
+		nfsServer:      "10.10.10.10",
+		nfsPath:        "/nfsdata",
+	}
+	pPod2 := pPod.DeepCopy()
+	pPod2 = s2.rewritePVC(vPod, pPod2)
+	vol2 := pPod2.Spec.Volumes[0]
+	assert.Assert(t, vol2.VolumeSource.NFS == nil)
+	assert.Assert(t, vol2.VolumeSource.PersistentVolumeClaim != nil)
+
+	// pvcReplaceType 为 none 时，不应替换
+	s3 := &podSyncer{
+		pvcReplaceType: "none",
+		nfsServer:      "10.10.10.10",
+		nfsPath:        "/nfsdata",
+	}
+	pPod3 := pPod.DeepCopy()
+	pPod3 = s3.rewritePVC(vPod, pPod3)
+	vol3 := pPod3.Spec.Volumes[0]
+	assert.Assert(t, vol3.VolumeSource.NFS == nil)
+	assert.Assert(t, vol3.VolumeSource.PersistentVolumeClaim != nil)
+
+	// nfsPath 前缀不带斜杠（已由初始化逻辑和 TestPodSyncerNfsPathNormalization 覆盖，无需在此重复测试）
+	// Pod 没有 PVC
+	pPod5 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mypod",
+			Namespace: "vcluster1",
+		},
+		Spec: corev1.PodSpec{
+			Volumes: []corev1.Volume{
+				{
+					Name: "config",
+					VolumeSource: corev1.VolumeSource{
+						ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "cm"}},
+					},
+				},
+			},
+		},
+	}
+	pPod5 = s.rewritePVC(vPod, pPod5)
+	assert.Assert(t, pPod5.Spec.Volumes[0].VolumeSource.NFS == nil)
+	assert.Assert(t, pPod5.Spec.Volumes[0].VolumeSource.ConfigMap != nil)
+
+	// Pod 有多个 PVC 和其他类型 Volume
+	pPod6 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mypod",
+			Namespace: "vcluster1",
+		},
+		Spec: corev1.PodSpec{
+			Volumes: []corev1.Volume{
+				{
+					Name: "data1",
+					VolumeSource: corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "claim1"},
+					},
+				},
+				{
+					Name: "data2",
+					VolumeSource: corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "claim2"},
+					},
+				},
+				{
+					Name: "cm",
+					VolumeSource: corev1.VolumeSource{
+						ConfigMap: &corev1.ConfigMapVolumeSource{LocalObjectReference: corev1.LocalObjectReference{Name: "cm"}},
+					},
+				},
+			},
+		},
+	}
+	pPod6 = s.rewritePVC(vPod, pPod6)
+	assert.Assert(t, pPod6.Spec.Volumes[0].VolumeSource.NFS != nil)
+	assert.Equal(t, pPod6.Spec.Volumes[0].VolumeSource.NFS.Path, "/nfsdata/vcluster1/testns/claim1")
+	assert.Assert(t, pPod6.Spec.Volumes[1].VolumeSource.NFS != nil)
+	assert.Equal(t, pPod6.Spec.Volumes[1].VolumeSource.NFS.Path, "/nfsdata/vcluster1/testns/claim2")
+	assert.Assert(t, pPod6.Spec.Volumes[2].VolumeSource.NFS == nil)
+	assert.Assert(t, pPod6.Spec.Volumes[2].VolumeSource.ConfigMap != nil)
+
+	// PVC 名称、namespace、cluster 含特殊字符（改为合法 DNS-1123 label）
+	vPod7 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mypod",
+			Namespace: "ns-1-test",
+		},
+	}
+	pPod7 := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "mypod",
+			Namespace: "clu-2-test",
+		},
+		Spec: corev1.PodSpec{
+			Volumes: []corev1.Volume{
+				{
+					Name: "data",
+					VolumeSource: corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{ClaimName: "claim-special"},
+					},
+				},
+			},
+		},
+	}
+	pPod7 = s.rewritePVC(vPod7, pPod7)
+	assert.Equal(t, pPod7.Spec.Volumes[0].VolumeSource.NFS.Path, "/nfsdata/clu-2-test/ns-1-test/claim-special")
+}
+func TestNormalizeNfsPath(t *testing.T) {
+	assert.Equal(t, normalizeNfsPath("nfsdata/"), "/nfsdata")
+	assert.Equal(t, normalizeNfsPath("/nfsdata/"), "/nfsdata")
+	assert.Equal(t, normalizeNfsPath("/nfsdata"), "/nfsdata")
+	assert.Equal(t, normalizeNfsPath("nfsdata"), "/nfsdata")
+	assert.Equal(t, normalizeNfsPath("/"), "/")
+	assert.Equal(t, normalizeNfsPath(""), "")
+}
